@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:music_notes/core/lesson.dart';
 import 'package:music_notes/widgets/keyboard.dart';
 import 'package:music_notes/widgets/staff.dart';
 
@@ -42,10 +43,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String _selectedNote = 'C';
+  Lesson lesson = Lesson('C');
+  Color _backgroundColor = Color.fromARGB(255, 255, 247, 228);
 
   void _onKeyPressed(String note) {
     setState(() {
-      _selectedNote = note;
+      if (note == lesson.currentNote) {
+        _selectedNote = lesson.getNextNote();
+        _backgroundColor = Color.fromARGB(255, 255, 247, 228);
+      } else {
+        _backgroundColor = const Color.fromARGB(255, 129, 9, 0);
+      }
     });
     debugPrint('Pressed $note');
   }
@@ -68,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
+      backgroundColor: _backgroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
