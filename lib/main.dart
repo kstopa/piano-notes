@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:music_notes/core/lesson.dart';
+import 'package:music_notes/screens/start_screen.dart';
 import 'package:music_notes/widgets/keyboard.dart';
 import 'package:music_notes/widgets/staff.dart';
 
@@ -14,28 +15,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Piano Notes',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
       ),
-      home: const MyHomePage(title: 'Piano notes'),
+      home: const StartScreen(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  const MyHomePage({
+    super.key,
+    required this.title,
+    this.clefType = ClefType.treble,
+  });
 
   final String title;
+  final ClefType clefType;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -43,8 +40,14 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String _selectedNote = 'C';
-  Lesson lesson = Lesson('C');
-  Color _backgroundColor = Color.fromARGB(255, 255, 247, 228);
+  late Lesson lesson;
+  Color _backgroundColor = const Color.fromARGB(255, 255, 247, 228);
+
+  @override
+  void initState() {
+    super.initState();
+    lesson = Lesson('C', clefType: widget.clefType);
+  }
 
   void _onKeyPressed(String note) {
     setState(() {
@@ -87,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 20),
-            MusicalStaff(note: _selectedNote),
+            MusicalStaff(note: _selectedNote, clefType: widget.clefType),
             const SizedBox(height: 40),
             PianoKeyboard(
               onKeyPressed: _onKeyPressed,

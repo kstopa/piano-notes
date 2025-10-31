@@ -1,16 +1,33 @@
 
 import 'dart:math';
 
+enum ClefType {
+  treble,
+  bass,
+}
 
 class Lesson {
 
   String currentNote;
-  static const notes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'A#', 'B#', 'C#', 'D#', 'E#', 'F#', 'G#'];
+  final ClefType clefType;
 
-  Lesson(this.currentNote);
+  // Treble clef notes (G clef) - higher register
+  static const trebleNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C#', 'D#', 'F#', 'G#', 'A#'];
+
+  // Bass clef notes (F clef) - lower register
+  static const bassNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C#', 'D#', 'F#', 'G#', 'A#'];
+
+  Lesson(this.currentNote, {this.clefType = ClefType.treble});
+
+  List<String> get notes {
+    return clefType == ClefType.treble ? trebleNotes : bassNotes;
+  }
 
   String getNextNote() {
-    int next = Random().nextInt(Lesson.notes.length);
+    int next = Random().nextInt(notes.length);
+    if (notes[next] == currentNote) {
+      return getNextNote();
+    }
     currentNote = notes[next];
     return currentNote;
   }

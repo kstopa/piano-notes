@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:music_notes/core/lesson.dart';
 
 /// A widget that draws a musical staff (pentagram) with a note on it
 class MusicalStaff extends StatelessWidget {
   final String note;
   final double width;
   final double height;
+  final ClefType clefType;
 
   const MusicalStaff({
     super.key,
     required this.note,
     this.width = 400,
     this.height = 200,
+    this.clefType = ClefType.treble,
   });
 
   @override
@@ -23,16 +26,16 @@ class MusicalStaff extends StatelessWidget {
         children: [
           CustomPaint(
             size: Size(width, height),
-            painter: StaffPainter(note: note),
+            painter: StaffPainter(note: note, clefType: clefType),
           ),
-          // Position the G clef SVG on the staff
+          // Position the clef SVG on the staff
           Positioned(
             left: 30,
-            top: height / 3 - 20, // Align with staff
+            top: clefType == ClefType.treble ? height / 3 - 20 : height / 3 + 10,
             child: SvgPicture.asset(
-              'assets/gclef.svg',
+              clefType == ClefType.treble ? 'assets/gclef.svg' : 'assets/fclef.svg',
               width: 40,
-              height: 110,
+              height: clefType == ClefType.treble ? 110 : 80,
               colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
             ),
           ),
@@ -44,14 +47,15 @@ class MusicalStaff extends StatelessWidget {
 
 class StaffPainter extends CustomPainter {
   final String note;
+  final ClefType clefType;
 
-  StaffPainter({required this.note});
+  StaffPainter({required this.note, this.clefType = ClefType.treble});
 
   // Map notes to their vertical positions on the staff
-  // Position 6 is the middle line (G in clef)
+  // Position 0 is the top line, position 4 is the bottom line
   // Positive numbers go down, negative numbers go up
-  static const Map<String, int> _notePositions = {
-    // Treble clef notes
+  static const Map<String, int> _trebleNotePositions = {
+    // Treble clef notes (G clef)
     'C': 10,   // Below the staff
     'D': 9,
     'E': 8,
@@ -64,6 +68,22 @@ class StaffPainter extends CustomPainter {
     'F#': 7,
     'G#': 6,
     'A#': 5,
+  };
+
+  static const Map<String, int> _bassNotePositions = {
+    // Bass clef notes (F clef)
+    'C': 6,    // Middle line
+    'D': 5,
+    'E': 4,
+    'F': 3,    // Top space
+    'G': 2,
+    'A': 1,    // Above staff
+    'B': 0,
+    'C#': 6,
+    'D#': 5,
+    'F#': 3,
+    'G#': 2,
+    'A#': 1,
   };
 
   @override
@@ -94,7 +114,8 @@ class StaffPainter extends CustomPainter {
     }
 
     // Draw the note
-    final notePosition = _notePositions[note] ?? 0;
+    final notePositions = clefType == ClefType.treble ? _trebleNotePositions : _bassNotePositions;
+    final notePosition = notePositions[note] ?? 0;
     final noteY = staffStartY + (notePosition * staffLineSpacing / 2);
     final noteX = staffStartX + 100;
 
