@@ -31,11 +31,11 @@ class MusicalStaff extends StatelessWidget {
           // Position the clef SVG on the staff
           Positioned(
             left: 30,
-            top: clefType == ClefType.treble ? height / 3 - 20 : height / 3 + 10,
+            top: clefType == ClefType.treble ? height / 3 - 20 : height / 3 + 2,
             child: SvgPicture.asset(
               clefType == ClefType.treble ? 'assets/gclef.svg' : 'assets/fclef.svg',
               width: 40,
-              height: clefType == ClefType.treble ? 110 : 80,
+              height: clefType == ClefType.treble ? 110 : 55,
               colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
             ),
           ),
