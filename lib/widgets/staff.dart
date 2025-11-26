@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:music_notes/core/lesson.dart';
+import 'package:music_notes/core/note.dart';
 
 /// A widget that draws a musical staff (pentagram) with a note on it
 class MusicalStaff extends StatelessWidget {
-  final String note;
+  final Note note;
   final double width;
   final double height;
   final ClefType clefType;
@@ -46,45 +47,10 @@ class MusicalStaff extends StatelessWidget {
 }
 
 class StaffPainter extends CustomPainter {
-  final String note;
+  final Note note;
   final ClefType clefType;
 
   StaffPainter({required this.note, this.clefType = ClefType.treble});
-
-  // Map notes to their vertical positions on the staff
-  // Position 0 is the top line, position 4 is the bottom line
-  // Positive numbers go down, negative numbers go up
-  static const Map<String, int> _trebleNotePositions = {
-    // Treble clef notes (G clef)
-    'C': 10,   // Below the staff
-    'D': 9,
-    'E': 8,
-    'F': 7,
-    'G': 6,
-    'A': 5,
-    'B': 4,   // Middle line
-    'C#': 10,
-    'D#': 9,
-    'F#': 7,
-    'G#': 6,
-    'A#': 5,
-  };
-
-  static const Map<String, int> _bassNotePositions = {
-    // Bass clef notes (F clef)
-    'C': 6,    // Middle line
-    'D': 5,
-    'E': 4,
-    'F': 3,    // Top space
-    'G': 2,
-    'A': 1,    // Above staff
-    'B': 0,
-    'C#': 6,
-    'D#': 5,
-    'F#': 3,
-    'G#': 2,
-    'A#': 1,
-  };
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -113,16 +79,30 @@ class StaffPainter extends CustomPainter {
       );
     }
 
-    // Draw the note
-    final notePositions = clefType == ClefType.treble ? _trebleNotePositions : _bassNotePositions;
-    final notePosition = notePositions[note] ?? 0;
+    // Calculate note position
+    int notePosition;
+    if (clefType == ClefType.treble) {
+      // Treble clef: C4 is position 10 (line below staff)
+      // Formula: 10 - ((octave - 4) * 7 + diatonicOffset)
+      notePosition = 10 - ((note.octave - 4) * 7 + note.diatonicOffset);
+    } else {
+      // Bass clef: C3 is position 5 (2nd space from bottom)
+      // Formula: 5 - ((octave - 3) * 7 + note.diatonicOffset)
+      notePosition = 5 - ((note.octave - 3) * 7 + note.diatonicOffset);
+    }
+
     final noteY = staffStartY + (notePosition * staffLineSpacing / 2);
     final noteX = staffStartX + 100;
 
     // Draw ledger lines if note is outside the staff
-    if (notePosition > 4) {
-      // Below the staff
-      for (int i = 5; i <= notePosition; i++) {
+    if (notePosition > 8) {
+      // Below the staff (position 8 is bottom line)
+      // Ledger lines are at even positions: 10, 12, etc.
+      // If position is odd (space), we need ledger line above it?
+      // E.g. C4 is 10. Ledger line at 10.
+      // B3 is 11. Ledger line at 10.
+      // A3 is 12. Ledger line at 12.
+      for (int i = 10; i <= notePosition; i++) {
         if (i % 2 == 0) {
           final ledgerY = staffStartY + (i * staffLineSpacing / 2);
           canvas.drawLine(
@@ -133,8 +113,11 @@ class StaffPainter extends CustomPainter {
         }
       }
     } else if (notePosition < 0) {
-      // Above the staff
-      for (int i = -1; i >= notePosition; i--) {
+      // Above the staff (position 0 is top line)
+      // Ledger lines at -2, -4, etc.
+      // A5 is -1. Ledger line at -2? No.
+      // C6 is -4. Ledger line at -2, -4.
+      for (int i = -2; i >= notePosition; i--) {
         if (i % 2 == 0) {
           final ledgerY = staffStartY + (i * staffLineSpacing / 2);
           canvas.drawLine(
@@ -158,8 +141,8 @@ class StaffPainter extends CustomPainter {
 
     // Draw note stem
     final stemHeight = staffLineSpacing * 3.5;
-    if (notePosition <= 0) {
-      // Stem goes down for notes above middle line
+    if (notePosition <= 4) {
+      // Stem goes down for notes on or above middle line (pos 4)
       canvas.drawLine(
         Offset(noteX - 10, noteY),
         Offset(noteX - 10, noteY + stemHeight),
@@ -179,7 +162,7 @@ class StaffPainter extends CustomPainter {
     }
 
     // Draw sharp symbol if needed
-    if (note.contains('#')) {
+    if (note.name.contains('#')) {
       _drawSharp(canvas, noteX - 30, noteY, staffLineSpacing / 4, paint);
     }
   }
@@ -212,6 +195,6 @@ class StaffPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(StaffPainter oldDelegate) {
-    return oldDelegate.note != note;
+    return oldDelegate.note != note || oldDelegate.clefType != clefType;
   }
 }

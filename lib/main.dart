@@ -3,6 +3,7 @@ import 'package:music_notes/core/lesson.dart';
 import 'package:music_notes/screens/start_screen.dart';
 import 'package:music_notes/widgets/keyboard.dart';
 import 'package:music_notes/widgets/staff.dart';
+import 'package:music_notes/core/note.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,21 +40,28 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _selectedNote = 'C';
+  late Note _selectedNote;
   late Lesson lesson;
   Color _backgroundColor = const Color.fromARGB(255, 255, 247, 228);
 
   @override
   void initState() {
     super.initState();
-    lesson = Lesson('C', clefType: widget.clefType);
+    // Initialize with a default note based on clef
+    final startNote = widget.clefType == ClefType.treble
+        ? const Note('C', 4)
+        : const Note('C', 3);
+    lesson = Lesson(startNote, clefType: widget.clefType);
+    _selectedNote = lesson.currentNote;
   }
 
   void _onKeyPressed(String note) {
     setState(() {
-      if (note == lesson.currentNote) {
+      // Compare the pressed key (note name) with the current target note's name
+      // We strip the octave from the comparison since the keyboard is single-octave
+      if (note == lesson.currentNote.name) {
         _selectedNote = lesson.getNextNote();
-        _backgroundColor = Color.fromARGB(255, 255, 247, 228);
+        _backgroundColor = const Color.fromARGB(255, 255, 247, 228);
       } else {
         _backgroundColor = const Color.fromARGB(255, 129, 9, 0);
       }
@@ -86,15 +94,13 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             const SizedBox(height: 20),
             Text(
-              'Selected Note: $_selectedNote',
+              'Selected Note: ${_selectedNote.name}${_selectedNote.octave}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 20),
             MusicalStaff(note: _selectedNote, clefType: widget.clefType),
             const SizedBox(height: 40),
-            PianoKeyboard(
-              onKeyPressed: _onKeyPressed,
-            ),
+            PianoKeyboard(onKeyPressed: _onKeyPressed),
             const SizedBox(height: 20),
           ],
         ),
